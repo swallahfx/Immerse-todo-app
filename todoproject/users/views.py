@@ -3,18 +3,25 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
-from .serializers import UserSerializer
+from .models import UserProfile
+from .serializers import UserSerializer, UserProfileSerializer
 from rest_framework.views import APIView
 from rest_framework import status
 from django.contrib.auth import authenticate
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.permissions import IsAuthenticated
+from datetime import datetime
+
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
 
-    
+    def perform_create(self, serializer):
+        user = serializer.save()
+        # Use set_password to hash the user's password
+        user.set_password(self.request.data['password'])
+        user.save()
 
 class LoginView(APIView):
     def post(self, request, *args, **kwargs):
@@ -29,6 +36,8 @@ class LoginView(APIView):
             refresh = RefreshToken.for_user(user)
             access_token = refresh.access_token
 
+            access_token_expiry = datetime.utcfromtimestamp(access_token['exp']).strftime('%Y-%m-%d %H:%M:%S')
+
             # Include additional user data in the response
             serializer = UserSerializer(user)
 
@@ -36,6 +45,8 @@ class LoginView(APIView):
                 {
                     "refresh": str(refresh),
                     "access": str(access_token),
+                    "expiry": access_token_expiry
+
                     # "user": serializer.data,
                 },
                 status=status.HTTP_200_OK,
