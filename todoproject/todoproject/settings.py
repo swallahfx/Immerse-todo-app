@@ -11,8 +11,6 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-from rest_framework import permissions 
-from django.urls import path
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -144,19 +142,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
-
-schema_view = get_schema_view(
-   openapi.Info(
-      title="ToDo API",
-      default_version='v1',
-   ),
-   public=True,
-   permission_classes=(permissions.AllowAny,),
-)
-
-urlpatterns = [
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-]
