@@ -45,3 +45,33 @@ class LoginView(APIView):
                 {"detail": "Invalid credentials"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
+
+class UserProfileListCreateView(generics.ListCreateAPIView):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+class UserProfileRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+class TokenRefreshView(APIView):
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.data.get('refresh_token')
+
+        if not refresh_token:
+            return Response({"detail": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Attempt to refresh the access token using the provided refresh token
+            refresh = RefreshToken(refresh_token)
+            new_access_token = str(refresh.access_token)
+            
+            # Include the new access token in the response
+            return Response({"access": new_access_token}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"detail": f"Failed to refresh access token. {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+
